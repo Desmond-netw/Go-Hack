@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -40,11 +41,25 @@ func main() {
 
 	flag.Parse()
 
-	if iface == nil {
+	if *iface == "" {
 		log.Fatal("provide hardware interface")
 		os.Exit(1)
 	}
-	execCommand("sudo", []string{"ifconfig", *iface, "down"})
-	execCommand("sudo", []string{"ifconfig", *iface, "hw", "ether", *newMac})
-	execCommand("sudo", []string{"ifconfig", *iface, "up"})
+	if *newMac == "" {
+		log.Fatal("provide hardware interface")
+		return
+	}
+	// Bring interface down
+	if err := execCommand("sudo", []string{"ifconfig", *iface, "down"}); err != nil {
+		fmt.Println(err)
+	}
+	// Change Mac Address
+	if err := execCommand("sudo", []string{"ifconfig", *iface, "hw", "ether", *newMac}); err != nil {
+		fmt.Println(err)
+	}
+
+	// Bring interface up
+	if err := execCommand("sudo", []string{"ifconfig", *iface, "up"}); err != nil {
+		fmt.Println(err)
+	}
 }
